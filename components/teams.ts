@@ -1,4 +1,3 @@
-import shuffle from "lodash/shuffle";
 
 export interface MemberCardDetails {
   name: string;
@@ -30,7 +29,7 @@ export const teams: Record<Team, TeamDetails> = {
   },
   core: {
     name: "Core",
-    members: ["Chris", "François", "Jan", "Mihai", "Noey", "Oo", "Pin"],
+    members: ["Jan", "Mihai", "Noey", "Oo", "Pin"],
   },
   dmw: {
     name: "Data Management Workstream",
@@ -43,7 +42,12 @@ export const teams: Record<Team, TeamDetails> = {
 };
 
 export const memberCardDetails = (members: string[]): MemberCardDetails[] => {
-  const randomizedColors = shuffle(colors);
+  // Create a copy of colors array and shuffle it using Fisher-Yates algorithm
+  const randomizedColors = [...colors];
+  for (let i = randomizedColors.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [randomizedColors[i], randomizedColors[j]] = [randomizedColors[j], randomizedColors[i]];
+  }
 
   return members.map((member, index) => ({
     name: member,
