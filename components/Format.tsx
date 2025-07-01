@@ -12,9 +12,6 @@ const steps = [
   {
     name: "What issues are blocking me?",
   },
-  {
-    name: "Any Sentry issues to review?",
-  },
 ];
 
 const Format = () => {

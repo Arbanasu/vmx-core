@@ -2,24 +2,29 @@ import { RefreshIcon } from "@heroicons/react/outline";
 import { animated, useTransition } from "@react-spring/web";
 import shuffle from "lodash/shuffle";
 import { FC, useEffect, useRef, useState } from "react";
+import { XIcon } from "@heroicons/react/solid";
 
 import { classNames } from "../utils";
 import BigTimer from "./BigTimer";
 import Confetti from "./Confetti";
 import { MemberCardDetails, memberCardDetails } from "./teams";
 
-const timeInMinutes = 3;
+const timeInMinutes = 1.5; // 1 minute and 30 seconds
+// This is the time we want to display the timer for, in minutes
 const cardWidth = 170;
 
 interface Props {
   members: string[];
+  addMember: (member: string) => void;
+  removeMember: (member: string) => void;
 }
 
-const Standup: FC<Props> = ({ members }) => {
+const Standup: FC<Props> = ({ members, addMember, removeMember }) => {
   const [items, setItems] = useState<MemberCardDetails[]>(memberCardDetails(members));
   const [activeMember, setActiveMember] = useState<MemberCardDetails | undefined>();
   const [isShuffled, setIsShuffled] = useState(false);
   const [isConfettiOn, setIsConfettiOn] = useState(false);
+  const [newMember, setNewMember] = useState("");
 
   /**
    * We need to set the interval inside a worker. Otherwise the browser
@@ -38,6 +43,10 @@ const Standup: FC<Props> = ({ members }) => {
       workerRef.current?.terminate();
     };
   }, []);
+
+  useEffect(() => {
+    setItems(memberCardDetails(members));
+  }, [members]);
 
   let width = 0;
 
@@ -78,6 +87,33 @@ const Standup: FC<Props> = ({ members }) => {
       <p className="mt-3 mb-8 text-2xl text-gray-500">
         Our team in {isShuffled ? "standup" : "alphabetical"} order:
       </p>
+      {/* Add Member UI */}
+      <div className="flex items-center mb-4 gap-2">
+        <input
+          type="text"
+          className="border rounded px-2 py-1"
+          placeholder="Add member name"
+          value={newMember}
+          onChange={e => setNewMember(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && newMember.trim()) {
+              addMember(newMember.trim());
+              setNewMember("");
+            }
+          }}
+        />
+        <button
+          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+          onClick={() => {
+            if (newMember.trim()) {
+              addMember(newMember.trim());
+              setNewMember("");
+            }
+          }}
+        >
+          Add
+        </button>
+      </div>
       {isShuffled && (
         <BigTimer
           autoStart={!!activeMember}
@@ -102,6 +138,17 @@ const Standup: FC<Props> = ({ members }) => {
                 <p className="text-lg text-gray-700 font-bold drop-shadow-lg">
                   {member.name}
                 </p>
+                <button
+                  className="ml-2 flex items-center justify-center w-7 h-7 rounded-full bg-red-100 hover:bg-red-200 transition-colors border border-transparent hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400"
+                  onClick={e => {
+                    e.stopPropagation();
+                    removeMember(member.name);
+                  }}
+                  title={`Remove ${member.name}`}
+                >
+                  <XIcon className="w-4 h-4 text-red-500" aria-hidden="true" />
+                  <span className="sr-only">Remove</span>
+                </button>
               </div>
             </div>
           </animated.div>

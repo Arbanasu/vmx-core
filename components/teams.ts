@@ -16,7 +16,7 @@ const colors = [
   "linear-gradient(135deg, #FDCB92 0%, #D1FDFF 100%)",
 ];
 
-export type Team = "amw" | "core" | "dmw" | "fmw";
+export type Team = "amw" | "core" | "dmw" | "fmw" | "apc";
 type TeamDetails = {
   name: string;
   members: string[];
@@ -38,6 +38,10 @@ export const teams: Record<Team, TeamDetails> = {
   fmw: {
     name: "Financial Management Workstream",
     members: ["Andreea", "Mihai A", "Mihai D", "Mihai G", "Raluca"],
+  },
+  apc: {
+    name: "Asset Platform Capabilities Squad",
+    members: ["Andriana", "Ciprian", "Costel", "Iulian", "Noey", "Oo", "Razvan"],
   },
 };
 
