@@ -41,7 +41,7 @@ export const teams: Record<Team, TeamDetails> = {
   },
   apc: {
     name: "Asset Platform Capabilities Squad",
-    members: ["Andriana", "Ciprian", "Costel", "Iulian", "Noey", "Oo", "Razvan"],
+    members: ["Adriana", "Ciprian", "Costel", "Iulian", "Noey", "Oo", "Razvan"],
   },
 };
 

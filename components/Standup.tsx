@@ -25,6 +25,13 @@ const Standup: FC<Props> = ({ members, addMember, removeMember }) => {
   const [isShuffled, setIsShuffled] = useState(false);
   const [isConfettiOn, setIsConfettiOn] = useState(false);
   const [newMember, setNewMember] = useState("");
+  const [timerMinutes, setTimerMinutes] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("standup-timer-minutes");
+      return stored ? Number(stored) : 2;
+    }
+    return 2;
+  });
 
   /**
    * We need to set the interval inside a worker. Otherwise the browser
@@ -47,6 +54,10 @@ const Standup: FC<Props> = ({ members, addMember, removeMember }) => {
   useEffect(() => {
     setItems(memberCardDetails(members));
   }, [members]);
+
+  useEffect(() => {
+    localStorage.setItem("standup-timer-minutes", String(timerMinutes));
+  }, [timerMinutes]);
 
   let width = 0;
 
@@ -84,40 +95,58 @@ const Standup: FC<Props> = ({ members, addMember, removeMember }) => {
 
   return (
     <div className="mb-20">
+      {/* Config Section - Navy Blue Theme */}
+      <div className="mb-8 w-full max-w-2xl mx-auto">
+        <div className="relative rounded-3xl p-8 flex flex-col gap-6 border border-blue-900 bg-white shadow-2xl shadow-gray-300">
+          <div className="flex flex-wrap items-center gap-4">
+            <label htmlFor="timer-minutes" className="text-base text-blue-900 font-semibold whitespace-nowrap">Timer (minutes):</label>
+            <select
+              id="timer-minutes"
+              className="border-none rounded-xl px-4 py-2 w-28 h-12 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 bg-white shadow-sm hover:shadow-md transition-all"
+              value={timerMinutes}
+              onChange={e => setTimerMinutes(Number(e.target.value))}
+              disabled={isShuffled}
+            >
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
+              <option value={4}>4</option>
+              <option value={5}>5</option>
+            </select>
+            <input
+              type="text"
+              className="border-none rounded-xl px-4 py-2 h-12 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 bg-white shadow-sm hover:shadow-md transition-all"
+              placeholder="Add member name"
+              value={newMember}
+              onChange={e => setNewMember(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && newMember.trim()) {
+                  addMember(newMember.trim());
+                  setNewMember("");
+                }
+              }}
+            />
+            <button
+              className="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-6 py-2 h-12 rounded-xl font-bold shadow-md hover:shadow-lg hover:from-blue-800 hover:to-blue-900 transition-all focus:outline-none focus:ring-2 focus:ring-blue-900"
+              onClick={() => {
+                if (newMember.trim()) {
+                  addMember(newMember.trim());
+                  setNewMember("");
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
       <p className="mt-3 mb-8 text-2xl text-gray-500">
         Our team in {isShuffled ? "standup" : "alphabetical"} order:
       </p>
-      {/* Add Member UI */}
-      <div className="flex items-center mb-4 gap-2">
-        <input
-          type="text"
-          className="border rounded px-2 py-1"
-          placeholder="Add member name"
-          value={newMember}
-          onChange={e => setNewMember(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && newMember.trim()) {
-              addMember(newMember.trim());
-              setNewMember("");
-            }
-          }}
-        />
-        <button
-          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-          onClick={() => {
-            if (newMember.trim()) {
-              addMember(newMember.trim());
-              setNewMember("");
-            }
-          }}
-        >
-          Add
-        </button>
-      </div>
       {isShuffled && (
         <BigTimer
           autoStart={!!activeMember}
-          date={Date.now() + timeInMinutes * 60 * 1000}
+          date={Date.now() + timerMinutes * 60 * 1000}
         />
       )}
       <div className="relative h-40" style={{ width }}>
