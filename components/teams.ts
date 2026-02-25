@@ -14,34 +14,19 @@ const colors = [
   "linear-gradient(135deg, #96fbc4 0%, #f9f586 100%)",
   "linear-gradient(135deg, #FFB5A7 0%, #FCD5CE 100%)",
   "linear-gradient(135deg, #FDCB92 0%, #D1FDFF 100%)",
+  "linear-gradient(135deg, #ed6fbb 0%, #ff9378 100%)",
 ];
 
-export type Team = "amw" | "core" | "dmw" | "fmw" | "apc";
+export type Team = "dec";
 type TeamDetails = {
   name: string;
   members: string[];
 };
 
 export const teams: Record<Team, TeamDetails> = {
-  amw: {
-    name: "Asset Management Workstream",
-    members: ["Adriana", "Alin", "Andreea", "Andrei", "Ciprian", "Cristian", "Vignesh"],
-  },
-  core: {
-    name: "Core",
-    members: ["Jan", "Mihai", "Noey", "Oo", "Pin"],
-  },
-  dmw: {
-    name: "Data Management Workstream",
-    members: ["Andreea", "Costel", "Cristian", "Mihai A"],
-  },
-  fmw: {
-    name: "Financial Management Workstream",
-    members: ["Andreea", "Mihai A", "Mihai D", "Mihai G", "Raluca"],
-  },
-  apc: {
-    name: "Asset Platform Capabilities Squad",
-    members: ["Adriana", "Ciprian", "Costel", "Iulian", "Noey", "Oo", "Razvan"],
+  dec: {
+    name: "Data Exposure Capabilities",
+    members: ["Andrei C", "Oo", "Razvan", "David", "Vice", "Vignesh", "Shahul", "Raluca"],
   },
 };
 

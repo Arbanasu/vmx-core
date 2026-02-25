@@ -1,19 +1,31 @@
 import Head from "next/head";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+
+import dynamic from "next/dynamic";
 
 import Format from "../components/Format";
-import Standup from "../components/Standup";
 import TeamSelect from "../components/TeamSelect";
+
+const Standup = dynamic(() => import("../components/Standup"), { ssr: false });
 import { Team, teams } from "../components/teams";
 
 const Home: FC = () => {
-  const [team, setTeam] = useState<Team>("core");
+  const [team, setTeam] = useState<Team>("dec");
   const [teamMembers, setTeamMembers] = useState<Record<Team, string[]>>(() => {
-    // Deep copy to avoid mutating the original teams object
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("standup-team-members");
+      if (stored) {
+        try { return JSON.parse(stored) as Record<Team, string[]>; } catch {}
+      }
+    }
     return Object.fromEntries(
       Object.entries(teams).map(([key, value]) => [key, [...value.members]])
     ) as Record<Team, string[]>;
   });
+
+  useEffect(() => {
+    localStorage.setItem("standup-team-members", JSON.stringify(teamMembers));
+  }, [teamMembers]);
 
   const addMember = (member: string) => {
     setTeamMembers((prev) => ({

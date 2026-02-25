@@ -23,6 +23,7 @@ const Standup: FC<StandupProps> = ({ members, addMember, removeMember }) => {
   const [activeMember, setActiveMember] = useState<MemberCardDetails | undefined>();
   const [isShuffled, setIsShuffled] = useState(false);
   const [isConfettiOn, setIsConfettiOn] = useState(false);
+  const [timerDate, setTimerDate] = useState<number | null>(null);
   const [newMemberName, setNewMemberName] = useState("");
   const [timerMinutes, setTimerMinutes] = useState(() => {
     if (typeof window !== "undefined") {
@@ -73,6 +74,7 @@ const Standup: FC<StandupProps> = ({ members, addMember, removeMember }) => {
 
   // Shuffle member cards and trigger confetti
   const handleShuffle = () => {
+    setTimerDate(Date.now() + timerMinutes * 60 * 1000);
     setMemberCards((prev) => {
       const shuffled = shuffle(prev);
       workerRef.current?.postMessage(shuffled);
@@ -83,10 +85,19 @@ const Standup: FC<StandupProps> = ({ members, addMember, removeMember }) => {
     });
   };
 
+  const handleReset = () => {
+    setMemberCards(memberCardDetails(members));
+    setIsShuffled(false);
+    setActiveMember(undefined);
+    setIsConfettiOn(false);
+    setTimerDate(null);
+  };
+
   // Activate a member card (for timer/confetti)
   const handleActivateMember = (member: MemberCardDetails) => {
     setIsConfettiOn(false);
     setActiveMember(member);
+    setTimerDate(Date.now() + timerMinutes * 60 * 1000);
   };
 
   // Handle adding a new member
@@ -113,17 +124,19 @@ const Standup: FC<StandupProps> = ({ members, addMember, removeMember }) => {
             <label htmlFor="timer-minutes" className="text-base text-blue-900 font-semibold whitespace-nowrap">
               Timer (minutes):
             </label>
-            <select
+            <input
               id="timer-minutes"
-              className="border-none rounded-xl px-4 py-2 w-28 h-12 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 bg-white shadow-sm hover:shadow-md transition-all"
+              type="number"
+              min={1}
+              max={60}
+              className="border-none rounded-xl px-4 py-2 w-24 h-12 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 bg-white shadow-sm hover:shadow-md transition-all"
               value={timerMinutes}
-              onChange={e => setTimerMinutes(Number(e.target.value))}
+              onChange={e => {
+                const val = Number(e.target.value);
+                if (val >= 1 && val <= 60) setTimerMinutes(val);
+              }}
               disabled={isShuffled}
-            >
-              {[1,2,3,4,5].map((min) => (
-                <option key={min} value={min}>{min}</option>
-              ))}
-            </select>
+            />
             <input
               type="text"
               className="border-none rounded-xl px-4 py-2 h-12 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 bg-white shadow-sm hover:shadow-md transition-all"
@@ -144,52 +157,59 @@ const Standup: FC<StandupProps> = ({ members, addMember, removeMember }) => {
       <p className="mt-3 mb-8 text-2xl text-gray-500">
         Our team in {isShuffled ? "standup" : "alphabetical"} order:
       </p>
-      {isShuffled && (
+      {isShuffled && timerDate && (
         <BigTimer
           autoStart={!!activeMember}
-          date={Date.now() + timerMinutes * 60 * 1000}
+          date={timerDate}
         />
       )}
-      <div className="relative h-40" style={{ width: totalWidth }}>
-        {transitions((style, member, _, index) => (
-          <animated.div
-            className="absolute cursor-pointer"
-            style={{ zIndex: memberCards.length - index, ...style }}
-            onClick={() => handleActivateMember(member)}
-          >
-            <div className="relative p-5 bg-cover">
-              <div
-                className={classNames(
-                  "relative flex justify-center items-center bottom-0 left-0 w-full rounded-md shadow-md h-20 ease-in-out duration-300",
-                  member.name === activeMember?.name && "scale-125"
-                )}
-                style={{ backgroundImage: member.css }}
-              >
-                <p className="text-lg text-gray-700 font-bold drop-shadow-lg">
-                  {member.name}
-                </p>
-                <button
-                  className="ml-2 flex items-center justify-center w-7 h-7 rounded-full bg-red-100 hover:bg-red-200 transition-colors border border-transparent hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400"
-                  onClick={e => {
-                    e.stopPropagation();
-                    removeMember(member.name);
-                  }}
-                  title={`Remove ${member.name}`}
+      <div className="w-full overflow-x-auto">
+        <div className="relative h-40" style={{ width: totalWidth }}>
+          {transitions((style, member, _, index) => (
+            <animated.div
+              className="absolute cursor-pointer"
+              style={{ zIndex: memberCards.length - index, ...style }}
+              onClick={() => handleActivateMember(member)}
+            >
+              <div className="relative p-5 bg-cover">
+                <div
+                  className={classNames(
+                    "relative flex justify-center items-center bottom-0 left-0 w-full rounded-md shadow-md h-20 ease-in-out duration-300",
+                    member.name === activeMember?.name && "scale-125"
+                  )}
+                  style={{ backgroundImage: member.css }}
                 >
-                  <XIcon className="w-4 h-4 text-red-500" aria-hidden="true" />
-                  <span className="sr-only">Remove</span>
-                </button>
+                  <p className="text-lg text-gray-700 font-bold drop-shadow-lg">
+                    {member.name}
+                  </p>
+                  <button
+                    className="ml-2 flex items-center justify-center w-7 h-7 rounded-full bg-red-100 hover:bg-red-200 transition-colors border border-transparent hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    onClick={e => {
+                      e.stopPropagation();
+                      removeMember(member.name);
+                    }}
+                    title={`Remove ${member.name}`}
+                  >
+                    <XIcon className="w-4 h-4 text-red-500" aria-hidden="true" />
+                    <span className="sr-only">Remove</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </animated.div>
-        ))}
+            </animated.div>
+          ))}
+        </div>
       </div>
       <button
         type="button"
-        className="inline-flex items-center p-3 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        onClick={handleShuffle}
+        className={`inline-flex items-center gap-2 px-5 py-3 border border-transparent rounded-full shadow-sm text-white font-semibold mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+          isShuffled
+            ? "bg-gray-500 hover:bg-gray-600 focus:ring-gray-400"
+            : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
+        }`}
+        onClick={isShuffled ? handleReset : handleShuffle}
       >
-        <RefreshIcon className="h-8 w-8" aria-hidden="true" />
+        <RefreshIcon className="h-6 w-6" aria-hidden="true" />
+        {isShuffled ? "Reset" : "Shuffle"}
       </button>
       <Celebration isConfettiOn={isConfettiOn} callback={() => setIsConfettiOn(false)} />
     </div>
